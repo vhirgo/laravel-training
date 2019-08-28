@@ -1,6 +1,7 @@
 <?php
 
 use App\User;
+use App\Blog;
 
 Route::post('login', function () {
     $credentials = request()->only('email', 'password');
@@ -34,6 +35,9 @@ Route::post('register', function () {
     ]);
 });
 
+Route::get('blogs', function(){
+  return Blog::all();
+});
 
 Route::group(['middleware' => 'auth:api'], function() {
     Route::apiResource('tasks', TaskController::class);
