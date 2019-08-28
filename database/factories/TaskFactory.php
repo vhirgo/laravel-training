@@ -7,6 +7,8 @@ use Faker\Generator as Faker;
 
 $factory->define(Task::class, function (Faker $faker) {
     return [
-        //
+        'name' => $faker->sentence,
+        'description' => $faker->paragraph,
+        'done_at' => $faker->randomElement([now(), null])
     ];
 });

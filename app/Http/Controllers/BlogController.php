@@ -2,20 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Task;
+use App\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class TaskController extends Controller
+class BlogController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Task::all();
+        $blog = (new Blog)->newQuery();
+        $blog->whereNotNull('published_at');
+
+        if ($request->search) {
+            $blog->orWhere('title', 'LIKE', "%{$request->search}%");
+            $blog->orWhere('content', 'LIKE', "%{$request->search}%");
+        }
+
+        if ($request->sort_by) {
+            $blog->orderBy($request->sort_by);
+        }
+
+        if ($request->sort_by_desc) {
+            $blog->orderByDesc($request->sort_by);
+        }
+
+        return Blog::paginate($request->get('limit', 15));
     }
 
     /**
@@ -27,28 +44,28 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
+            'title' => 'required',
         ]);
 
         $data = $request->all();
-        $data['done_at'] = $request->done ? now() : null;
+        $data['published_at'] = $request->publish ? now() : null;
 
-        return Task::create($data);
+        return Blog::create($data);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Task  $task
+     * @param  \App\Blog  $task
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
         try {
-            return Task::findOrFail($id);
+            return Blog::findOrFail($id);
         } catch (ModelNotFoundException $exception) {
             return response([
-                'message' => "Fail to get task with ID {$id}, because it was not found.",
+                'message' => "Fail to get blog post with ID {$id}, because it was not found.",
             ], 404);
         }
     }
@@ -57,17 +74,17 @@ class TaskController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Task  $task
+     * @param  \App\Blog  $task
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Task $task)
+    public function update(Request $request, Blog $task)
     {
         $request->validate([
-            'name' => 'required',
+            'title' => 'required',
         ]);
 
         $data = $request->all();
-        $data['done_at'] = $request->done ? now() : null;
+        $data['published_at'] = $request->publish ? now() : null;
 
         return tap($task)->update($data);
     }
@@ -75,17 +92,17 @@ class TaskController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Task  $task
+     * @param  \App\Blog  $task
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
         try {
-            $task = Task::findOrFail($id);
+            $task = Blog::findOrFail($id);
             return tap($task)->delete();
         } catch (ModelNotFoundException $exception) {
             return response([
-                'message' => "Fail to delete task with ID {$id}, because it was not found.",
+                'message' => "Fail to delete blog post with ID {$id}, because it was not found.",
             ], 404);
         }
     }

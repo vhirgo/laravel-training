@@ -1,3 +1,5 @@
 <?php
 
-Route::resource('tasks', TaskController::class);
+Route::get('/', function() {
+    return "Silahkan cek " . url()->current() . '/api';
+});
