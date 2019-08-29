@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProductCollection;
 use App\Product;
 use Illuminate\Http\Request;
+use App\Http\Resources\ProductResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProductController extends Controller
@@ -31,8 +33,7 @@ class ProductController extends Controller
         if ($request->sort_by_desc) {
             $product->orderByDesc($request->sort_by);
         }
-
-        return Product::paginate($request->get('limit', 15));
+        return new ProductCollection($product->paginate());
     }
 
     /**
@@ -53,16 +54,7 @@ class ProductController extends Controller
         $response['message'] = "New product has been created.";
         $product = Product::create($data);
 
-        if (request()->file('images')) {
-            $imageList = [];
-            foreach (request()->file('images') as $key => $image) {
-                $filename = $image->storePublicly('product_images');
-                $imageList[$key] = $filename;
-            }
-
-            $product->fill(['images' => $imageList]);
-            $product->save();
-        }
+        $this->saveUploadedImages($product);
 
         $response['data'] = $product;
 
@@ -78,7 +70,8 @@ class ProductController extends Controller
     public function show($id)
     {
         try {
-            return Product::findOrFail($id);
+            $product = Product::findOrFail($id);
+            return new ProductResource($product);
         } catch (ModelNotFoundException $exception) {
             return response([
                 'message' => "Fail to get product with ID {$id}, because it was not found.",
@@ -105,16 +98,7 @@ class ProductController extends Controller
         $response['message'] = "Product with ID {$product->id} has been updated.";
         $response['data'] = tap($product)->update($data);
 
-        if (request()->file('images')) {
-            $imageList = [];
-            foreach (request()->file('images') as $key => $image) {
-                $filename = $image->storePublicly('product_images');
-                $imageList[$key] = $filename;
-            }
-
-            $product->fill(['images' => $imageList]);
-            $product->save();
-        }
+        $this->saveUploadedImages($product);
 
         return $response;
     }
@@ -136,6 +120,23 @@ class ProductController extends Controller
             return response([
                 'message' => "Fail to delete product with ID {$id}, because it was not found.",
             ], 404);
+        }
+    }
+
+    /**
+     * @param $product
+     */
+    protected function saveUploadedImages($product): void
+    {
+        if (request()->file('images')) {
+            $imageList = [];
+            foreach (request()->file('images') as $key => $image) {
+                $filename = $image->storePublicly('product_images');
+                $imageList[$key] = $filename;
+            }
+
+            $product->fill(['images' => $imageList]);
+            $product->save();
         }
     }
 }
