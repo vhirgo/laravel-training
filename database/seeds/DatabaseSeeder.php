@@ -1,8 +1,6 @@
 <?php
 
-use App\User;
-use App\Blog;
-use App\Task;
+use App\{User, Task, Blog, Product};
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -16,13 +14,12 @@ class DatabaseSeeder extends Seeder
     {
         factory(Blog::class, 10)->create();
         factory(Task::class, 82)->create();
+        factory(Product::class, 5)->create();
 
         User::insert([
-            [
-                'email' => 'mul14@refactory.id',
-                'name' => 'Mulia Nasution',
-                'password' => bcrypt('secret'),
-            ],
+            'email' => 'root@example.com',
+            'name' => 'Administrator',
+            'password' => bcrypt('secret'),
         ]);
     }
 }
