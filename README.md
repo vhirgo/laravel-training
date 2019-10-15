@@ -2,6 +2,6 @@
 
 Jalankan dengan perintah `php artisan serve`
 
-Akses `http://localhost:8000/api`.
+Akses `http://localhost:8000/api`. || http://nasution.dev/api/tasks
 
 Import Postman Collection berikut ini [https://www.getpostman.com/collections/491f5648adb4125b8eb8](https://www.getpostman.com/collections/491f5648adb4125b8eb8)
