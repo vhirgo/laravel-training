@@ -1,45 +1,28 @@
 <?php
 
-use App\User;
-use App\Blog;
+// Authentication
+Route::get('/register', 'RegisterController');
+Route::get('/login', 'LoginController');
 
-Route::post('login', function () {
-    $credentials = request()->only('email', 'password');
 
-    if (auth()->once($credentials)) {
-        $user = auth()->user();
-        $user->api_token = \Str::random(80);
-        $user->save();
+// Product
+Route::get('/product_images/{image}', 'ProductImageController');
+Route::get('/products', [App\Http\Controllers\ProductController::class, 'index']);
+Route::get('/products/{product}', [App\Http\Controllers\ProductController::class, 'show']);
+Route::post('/products', [App\Http\Controllers\ProductController::class, 'store']);
+Route::put('/products/{product}', [App\Http\Controllers\ProductController::class, 'update']);
+Route::delete('/products/{product}', [App\Http\Controllers\ProductController::class, 'destroy']);
 
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'api_token' => auth()->user()->api_token,
-        ];
-    }
-});
+// Tasks
+Route::get('/tasks', 'TaskController@index');
+Route::get('/tasks/{task}', 'TaskController@show');
+Route::post('/tasks', 'TaskController@store')->middleware('auth:api');
+Route::put('/tasks/{task}', 'TaskController@update')->middleware('auth:api');
+Route::delete('/tasks/{task}', 'TaskController@destroy')->middleware('auth:api');
 
-Route::post('register', function () {
-
-    request()->validate([
-        'email' => 'required|email',
-        'name' => 'required',
-        'password' => 'required|min:6',
-    ]);
-
-    return User::create([
-        'email' => request()->email,
-        'name' => request()->name,
-        'password' => bcrypt(request()->password),
-    ]);
-});
-
-Route::get('blogs', function(){
-  return Blog::all();
-});
-
-Route::group(['middleware' => 'auth:api'], function() {
-    Route::apiResource('tasks', TaskController::class);
-    Route::apiResource('blog', BlogController::class);
-});
+// Blog
+Route::get('/blog', 'BlogController@index');
+Route::get('/blog/{blog}', 'BlogController@show');
+Route::post('/blog', 'BlogController@store')->middleware('auth:api');
+Route::put('/blog/{blog}', 'BlogController@update')->middleware('auth:api');
+Route::delete('/blog/{blog}', 'BlogController@destroy')->middleware('auth:api');
